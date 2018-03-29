@@ -1,0 +1,358 @@
+
+# coding: utf-8
+
+# # Backgroud 
+# 
+# ### TMDb movie data
+# 
+# #### This data set contains information about 10,000 movies collected from The Movie Database (TMDb), including user ratings and revenue.
+# 
+# - Certain columns, like ‘cast’ and ‘genres’, contain multiple values separated by pipe (|) characters.
+#  
+# - There are some odd characters in the ‘cast’ column. Don’t worry about cleaning them. You can leave them as is.
+# 
+# - The final two columns ending with “_adj” show the budget and revenue of the associated movie in terms of 2010 dollars, accounting for inflation over time.
+# 
+# ## 1.Set up the photograph and Loading data from CSVs
+
+# ## 1.1 System setting
+
+# In[3]:
+
+
+import warnings
+warnings.filterwarnings('ignore')
+
+
+# In[4]:
+
+
+get_ipython().magic('matplotlib inline')
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+pd.set_option('display.width',500)
+pd.set_option('display.max_columns',100)
+
+def remove_border(axes=None, top=False, right=False, left=True, bottom=True):
+    
+    ax = axes or plt.gca()
+    ax.spines['top'].set_visible(top)
+    ax.spines['right'].set_visible(right)
+    ax.spines['left'].set_visible(left)
+    ax.spines['bottom'].set_visible(bottom)
+    
+    ax.yaxis.set_ticks_position('none')
+    ax.xaxis.set_ticks_position('none')
+    
+    if top:
+        ax.xaxis.tick_top()
+    if bottom:
+        ax.xaxis.tick_bottom()
+    if left:
+        ax.yaxis.tick_left()
+    if right:
+        ax.yaxis.tick_right()
+    
+
+
+
+# ## 1.2 Data import
+
+# In[5]:
+
+
+
+data = pd.read_csv('tmdb-movies.csv')
+
+data.head()
+
+
+# ## 2.Fixing Data Types
+
+# In[6]:
+
+
+data.isnull().sum()
+
+
+# In[7]:
+
+
+data.fillna("Unknown",inplace=True)
+
+
+# In[8]:
+
+
+data.isnull().sum()
+
+
+# ## 2.2 After fixed the missing data,seperation the genres information for several columns,and every cell shows True or False.
+
+# In[9]:
+
+
+genres = set()
+
+for m in data.genres:
+    genres.update(g for g in m.split('|'))
+genres = sorted(genres)
+
+for genre in genres:
+    data[genre] = [genre in movie.split('|') for movie in data.genres]
+
+data.head()
+
+
+# ##  3. Investigating the Data
+# ### 3.1 To realize data from .describe
+
+# In[10]:
+
+
+data[['runtime','vote_count','vote_average','release_year']].describe()
+
+
+# ### 3.2 Find the length of 0, and mark them to NAN.
+
+# In[11]:
+
+
+print((len(data[data.runtime==0])))
+
+data.runtime[data.runtime == 0] = np.nan
+
+
+# In[12]:
+
+
+data.runtime.describe()
+
+
+# ## 4. Exploring movie release_year
+# ### There are many movies release in recent year,and it can be investigate vote_average.
+
+# In[13]:
+
+
+plt.hist(data.release_year,bins=np.arange(1960,2017),color='#cccccc')
+plt.xlabel("Release_year")
+remove_border()
+
+
+# ## 4.1 Exploring movie vote average
+
+# In[14]:
+
+
+plt.hist(data.vote_average,bins=20,color='#cccccc')
+plt.xlabel("Vote_average")
+remove_border()
+
+
+# ## 4.2 Exploring movie Runtime distribution
+
+# In[15]:
+
+
+plt.hist(data.runtime.dropna(),bins=50,color='#cccccc')
+plt.xlabel("Runtime distribution")
+remove_border()
+
+
+# ## 4.3 Vote_average between Release_year relationship
+
+# In[16]:
+
+
+plt.scatter(data.release_year,data.vote_average,lw=0,alpha=.08,color='#cccccc')
+plt.xlabel("Release Year")
+plt.ylabel("Rating")
+remove_border()
+
+
+# ## 4.4 The number of votes between vote rating
+
+# In[17]:
+
+
+plt.scatter(data.vote_count,data.vote_average,lw=0,alpha=.2,color=('#cccccc'))
+plt.xlabel("Number of Votes")
+plt.ylabel("Vote Rating")
+plt.xscale('log')
+remove_border()
+
+
+# ## 4.5 Invesigate vote score (the lowest and the highest)
+
+# In[30]:
+
+
+data[data.vote_average == data.vote_average.min()][['original_title','release_year','vote_average','genres']]
+
+
+# In[31]:
+
+
+data[data.vote_average == data.vote_average.max()][['original_title','release_year','vote_average','genres']]
+
+
+# ## 4.6 Which genres was the most frequently in Data
+
+# In[18]:
+
+
+genre_c = np.sort(data[genres].sum())[::-1]
+pd.DataFrame({'Genre Count':genre_c})
+
+
+# ### 4.7 The average of genres in the movies
+
+# In[32]:
+
+
+genre_count = data[genres].sum(axis=1) 
+print(("Average movie has %0.2f genres" % genre_count.mean()))
+genre_count.describe()
+
+
+# ## 5.Explore group feature
+
+# In[33]:
+
+
+decade =  (data.release_year // 10) * 10
+
+tyd = data[['original_title', 'release_year']]
+tyd['decade'] = decade
+
+tyd.head()
+
+
+# In[35]:
+
+
+decade_mean = data.groupby(decade).vote_average.mean()
+decade_mean.name = 'Decade Mean'
+print(decade_mean)
+plt.plot(decade_mean.index, decade_mean.values, 'o-',
+        color='r', lw=3, label='Decade Average')
+plt.scatter(data.release_year, data.vote_average, alpha=.04, lw=0, color='k')
+plt.xlabel("Release_year")
+plt.ylabel("Vote_average")
+plt.legend(frameon=False)
+remove_border()
+
+
+# In[36]:
+
+
+grouped_scores = data.groupby(decade).vote_average
+
+mean = grouped_scores.mean()
+std = grouped_scores.std()
+
+plt.plot(decade_mean.index, decade_mean.values, 'o-',
+        color='r', lw=3, label='Decade Average')
+plt.fill_between(decade_mean.index, (decade_mean + std).values,
+                 (decade_mean - std).values, color='r', alpha=.2)
+plt.scatter(data.release_year, data.vote_average, alpha=.04, lw=0, color='k')
+plt.xlabel("Release_year")
+plt.ylabel("Vote_average")
+plt.legend(frameon=False)
+remove_border()
+
+
+# In[38]:
+
+
+for release_year, subset in data.groupby('release_year'):
+    print((release_year, subset[subset.vote_average == subset.vote_average.max()].original_title.values))
+
+
+# ## 5. Small group of genres
+
+# ### 5.1 The popular genres in release years
+
+# In[39]:
+
+
+fig, axes = plt.subplots(nrows=3, ncols=7, figsize=(12, 8), 
+                         tight_layout=True)
+
+bins = np.arange(1950, 2013, 3)
+for ax, genre in zip(axes.ravel(), genres):
+    ax.hist(data[data[genre] == 1].release_year, 
+            bins=bins, histtype='stepfilled', normed=True, color='r', alpha=.3, ec='none')
+    ax.hist(data.release_year, bins=bins, histtype='stepfilled', ec='None', normed=True, zorder=0, color='#cccccc')
+    
+    ax.annotate(genre, xy=(1955, 3e-2), fontsize=14)
+    ax.xaxis.set_ticks(np.arange(1950, 2013, 30))
+    ax.set_yticks([])
+    remove_border(ax, left=False)
+    ax.set_xlabel('Release_year')
+
+
+# ### 5.2 Runtime in different genres
+
+# In[41]:
+
+
+fig, axes = plt.subplots(nrows=3, ncols=7, figsize=(12, 8), tight_layout=True)
+
+bins = np.arange(30, 240, 10)
+
+for ax, genre in zip(axes.ravel(), genres):
+    ax.hist(data[data[genre] == 1].runtime.dropna(), 
+            bins=bins, histtype='stepfilled', color='r', ec='none', alpha=.3, normed=True)
+               
+    ax.hist(data.runtime.dropna(), bins=bins, normed=True,
+            histtype='stepfilled', ec='none', color='#cccccc',
+            zorder=0)
+    
+    ax.set_xticks(np.arange(30, 240, 60))
+    ax.set_yticks([])
+    ax.set_xlabel("Runtime [min]")
+    remove_border(ax, left=False)
+    ax.annotate(genre, xy=(230, .02), ha='right', fontsize=12)
+
+
+# ### 5.3 Vote average in different genres
+
+# In[45]:
+
+
+fig, axes = plt.subplots(nrows=3, ncols=7, figsize=(12, 8), tight_layout=True)
+
+bins = np.arange(0, 10, .5)
+
+for ax, genre in zip(axes.ravel(), genres):
+    ax.hist(data[data[genre] == 1].vote_average, 
+            bins=bins, histtype='stepfilled', color='r', ec='none', alpha=.3, normed=True)
+               
+    ax.hist(data.vote_average, bins=bins, normed=True,
+            histtype='stepfilled', ec='none', color='#cccccc',
+            zorder=0)
+    
+    ax.set_yticks([])
+    ax.set_xlabel("Vote_average")
+    remove_border(ax, left=False)
+    ax.set_ylim(0, .4)
+    ax.annotate(genre, xy=(0, .2), ha='left', fontsize=12)
+
+
+# ## 6. Summary
+# 1. Western and war genres popularity have normally distribution in release years.
+# 2. Western genre has more popular in 50s.
+# 3. History genre has long term runtime.
+# 4. Animation,TV movie genre have short term runtime.
+# 5. Music and mytery genre runtime have same distribution with average runtime.
+# 6. Documentary and western genre have the highest vote_average than other genres.
+# 7. Horror genre has lower vote_average than other genres.
+
+# ## 7. Reference
+# * [Data Science](https://www.kesci.com/apps/home/project/59435d2a23168e6e892555e8)
+# * [Data wrangling with Pandas](http://nbviewer.jupyter.org/urls/gist.github.com/fonnesbeck/5850413/raw/3a9406c73365480bc58d5e75bc80f7962243ba17/2.+Data+Wrangling+with+Pandas.ipynb)
