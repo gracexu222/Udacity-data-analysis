@@ -1,7 +1,7 @@
 ## Baseball player performace data visualization
 
 ### Project link review
-
+[index2](https://cdn.rawgit.com/gracexu222/Udacity-data-analysis/f0f65d15/P6_Make%20Effective%20Data%20Visualization/index2.htm)
 
 ### Summary
 
