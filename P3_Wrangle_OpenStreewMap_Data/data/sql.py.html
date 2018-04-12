@@ -1,0 +1,169 @@
+
+# coding: utf-8
+
+# ## OpenStreetMap Data Case Study
+
+# ## 1. Map Area
+
+# ### Wuhan,Hubei,China
+
+# * https://www.openstreetmap.org/export#map=11/30.5962/114.2993
+
+# * Used QGIS to download .OSM document.
+
+# #### This map is my hometown,I was born and studied in there.There are many delicious food restaurant in Wuhan,and I 'd like an opportunity to contribute to its improvement on OpenStreetMap for my hometown.
+
+# ## 2. Problems encountered in the map
+
+# #### After initially downloading a small sample size of the WUHAN area and running sample.osm.Two main problems as below:
+# * Overabbreviated street names("Sanjiahu Rd")
+# * Including Chinese and spell name ("车站村 chezhancun")
+# 
+
+# ###  Corrected the street name
+
+# ### corrected the street name ("Rd -> Roade")
+
+# In[ ]:
+
+
+def update_street_name(name, mapping):
+    for ma in mapping.keys():
+        if name.endswith(ma):
+            name=name.replace(ma,mapping[ma])
+    return name
+
+
+# ### explored the zipcode
+
+# In[1]:
+
+
+import sqlite3
+con = sqlite3.connect('map.db')
+cur = con.cursor()
+cur.execute("select tags.value, count(*) as num from (select * from nodes_tags union all select * from ways_tags) as tags where tags.key = 'postcode' group by tags.value order by num desc")
+cur.fetchall()
+
+
+# #### The Zipcode looks good
+
+# ## 3. Data overview and addional ideas
+
+# ### File sizes
+
+# * wuhan_china.osm ......... 62.3 MB 
+# * map.db .................. 33.6 MB
+# * nodes.csv ............... 24.8 MB
+# * nodes_tags.csv .......... 0.48 MB
+# * ways.csv ................ 1.96 MB
+# * ways_tags.csv ........... 2.4 MB
+# * ways_nodes.cv ........... 9 MB 
+
+# ### Number of nodes
+
+# In[3]:
+
+
+cur.execute('select count(*) from nodes')
+cur.fetchall()
+
+
+# ### Number of ways
+
+# In[5]:
+
+
+cur.execute('select count(*) from ways')
+cur.fetchall()
+
+
+# ### Number of unique users
+
+# In[13]:
+
+
+cur.execute('select count(distinct(e.uid)) from (select uid from ways union all select uid from nodes) as e')
+cur.fetchall()
+
+
+# ### Top 10 contributing users
+
+# In[4]:
+
+
+cur.execute('select e.user, count(*) as num from (select user from ways union all select user from nodes) as e group by e.user order by num desc limit 10')
+cur.fetchall()
+
+
+# ### Number of users appearing only once(having 1 post)
+
+# In[4]:
+
+
+cur.execute('select count(*) from (select e.user, count(*) as num from (select user from nodes union all select user from ways) as e group by e.user having num = 1) as u')
+cur.fetchall()
+
+
+# # 3. Additional ideas
+
+# In[6]:
+
+
+cur.execute('select count(*) as num from (select user from nodes union all select user from ways) as e')
+cur.fetchall()
+
+
+# #### Here are some user percentage statistics: 
+# * Top user contribution percentage("GeoSUN")32.13%
+# * Combined top users'contribution("GeoSUN" and "Soub")45.89%
+# * Combined Top 10 users contribution 74.5%
+
+# # 4. Additional Data Exploration
+
+# ## Numbers of store
+
+# In[5]:
+
+
+cur.execute("select e.value, count(*) as num from (select * from nodes_tags union all select * from ways_tags) as e where e.key = 'shop' group by e.value order by num desc")
+cur.fetchall()
+
+
+# ## 5. Numbers of leisure space
+
+# In[11]:
+
+
+cur.execute("select e.value, count(*) as num from (select * from nodes_tags union all select * from ways_tags) as e where e.key = 'leisure' group by e.value order by num desc")
+cur.fetchall()
+
+
+# ## 6. The most popoular food
+
+# In[7]:
+
+
+cur.execute("SELECT nodes_tags.value, COUNT(*) as num FROM nodes_tags JOIN (SELECT DISTINCT(id) FROM nodes_tags WHERE value='restaurant') i ON nodes_tags.id=i.id WHERE nodes_tags.key='cuisine' GROUP BY nodes_tags.value ORDER BY num DESC")
+cur.fetchall()
+
+
+# ## 7. Map data improvement
+# 
+# ### 1. Standardisation tag "name" performance to reduce more data sort.
+# #### With relate of name tag element is "name" which include name,name:en and name:zh. Those three tag elements are disorder in map data.The propose is  standardisation name for english and chinese.the benfit is omit name:zh to reduce data maintain and reduce data sore error.otherwise,Should be correct the english name and chinese name are same and authority other data support.
+# 
+# ### 2. Enhance enjoyment of users to contribution map data
+# #### OpenStreeMap could have stimulate action for users to contribution data.according to users upload data's accuracy rating and activeness to have ranking list and encourage user's to upload more high quality data.
+# 
+# ### 3. Definition map data upload standard format
+# #### Standard format of map data can help non-standard map data couldn't upload which means it can be check data before users upload.However,it may could base on different countries or it could target different countries to complete different standard data format and allow different area have their own characteristic.
+# 
+# ### 4.Other world map's API can help OpenStreetMap tp complete and correct the map data
+# #### other world map which like Google map or Iphone map's API can help correct the map data that can improve quality of map data and can get addition map data,but the problem is many have repeat map data and have different data format.So it's still need explore,clean and improve  map data
+
+# ## 8.Conclusion
+
+# #### After review Wuhan map data it was show that area isn't complete,even I though I have been cleaned the map data of this project.It was interest me to notice many kind of food,leisure space and store which correspond with Wuhan people life style and customs.
+# 
+# #### Because of the city of Wuhan is China city, the city of street is combine with Chinese and Chinese spell name that will error for same pronounce but actually different street name.So improvement and accurate translation the name of street will help us to better understanding the map data.And OpenStreetMap maybe to use machine learning to check and correct the data of map to improve the quality of data.

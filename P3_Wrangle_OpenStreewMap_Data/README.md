@@ -13,3 +13,8 @@
 
 ###  4. Explore data set
 ##### Building .csv files and explore data set
+
+### 5.Data file instruction
+* data ipynb (whole map data explore)
+* data_sample.ipynb(sample map data explore)
+* sql.ipynb(SQL and summary)
