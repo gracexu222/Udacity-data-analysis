@@ -140,13 +140,15 @@
             .text("Weight (pounds)")
 
 
-
+         // set function for ellipse
         function draw_point(draw_data){
           svg.selectAll("ellipse").remove();
           debugger;
 
           svg.selectAll(".dot")
           .data(draw_data.sort(function(a,b){
+
+          // Sort of data set,lower avg line in the top
 
             return b.avg - a.avg;
           }))
@@ -162,7 +164,7 @@
           .on("mouseout", handleMouseOut);
         };
 
-
+        // Show information of ellipses when mouse stop in.
         function handleMouseOver(d, i){
 
           var height = "Height: " + d.height;
@@ -179,7 +181,7 @@
             .style("rx", function(d){return rx(d.avg)*2; })
             .style("ry", function(d){return ry(d.HR)*2; });
 
-
+          // draw floating frame
           svg.append("rect")
           .attr("id", "information1")
           .attr("color", "red")
@@ -188,7 +190,7 @@
           .attr("width", "150")
           .attr("height", "65");
 
-
+          // show information which included height,weight,Avg,HR and number of people
           svg.append("text")
           .attr("id", "information1")
           .attr("fill", "#FFF")
@@ -211,7 +213,7 @@
           .text(str3);
         }
 
-
+        // cancel extra information after mouse remove
         function handleMouseOut(d, i){
           d3.select(this)
           .style("rx", function(d){return rx(d.avg); })
@@ -222,10 +224,10 @@
           d3.selectAll("#information3").remove();
         }
 
-
+        // draw all the ellipses
         draw_point(data);
 
-
+        // set up graph
         var legend = svg.selectAll(".legend")
         .data(color.domain())
         .enter()
@@ -257,7 +259,7 @@
 
             });
 
-
+        // set up tips
         d3.select("body")
           .append("div")
           .attr("class", "note")
@@ -265,7 +267,7 @@
 
 
 
-
+        // set up click event
         buttons.on("click", function(d){
           d3.select(".handedness_button")
             .selectAll("div")
@@ -283,7 +285,7 @@
         });
 
 
-
+        // set up update function after click bottom,the function will update data
         function update(handedness) {
 
           if (handedness == "Right hand") {
