@@ -13,9 +13,21 @@
 # 
 # - The final two columns ending with “_adj” show the budget and revenue of the associated movie in terms of 2010 dollars, accounting for inflation over time.
 # 
-# ## 1.Set up the photograph and Loading data from CSVs
+# ### Data explore work flow:
+# 
+# 1. Set up data frame:Moving all data which I need in the data frame.
+# 2. Clean data set:Clean all the data set,as below performance:
+# * Each row describes a single object
+# * Each column describes a property of that object
+# * Columns are numeric whenever appropriate
+# * Columns contain atomic properties that cannot be further decomposed
+# 3. Explore all the data graph.
+# 4. Explore data group to compare with data frame.
+# 
 
-# ## 1.1 System setting
+# ## 1. Loading data from CSVs
+
+# ### 1.1 System setting
 
 # In[3]:
 
@@ -59,7 +71,7 @@ def remove_border(axes=None, top=False, right=False, left=True, bottom=True):
 
 
 
-# ## 1.2 Data import
+# ### 1.2 Import Data
 
 # In[5]:
 
@@ -70,7 +82,15 @@ data = pd.read_csv('tmdb-movies.csv')
 data.head()
 
 
-# ## 2.Fixing Data Types
+# ## 2. Interested questions was thinking about
+# 
+# 1. What kind of genres as high vote rate?
+# 2. Had the high vote rate movies genre have different in the release years?
+# 3. Is that the high vote rate movies base on the runtime?
+# 4. In different release year,which kind of genres are more produced?
+# 
+
+# ## 3.Fixing Data Types
 
 # In[6]:
 
@@ -90,7 +110,7 @@ data.fillna("Unknown",inplace=True)
 data.isnull().sum()
 
 
-# ## 2.2 After fixed the missing data,seperation the genres information for several columns,and every cell shows True or False.
+# #### 3.2 After fixed the missing data,seperation the genres information for several columns,and every cell shows True or False.
 
 # In[9]:
 
@@ -107,8 +127,8 @@ for genre in genres:
 data.head()
 
 
-# ##  3. Investigating the Data
-# ### 3.1 To realize data from .describe
+# ##  4. Investigating the Data
+# ### 4.1 To realize data from .describe
 
 # In[10]:
 
@@ -116,7 +136,7 @@ data.head()
 data[['runtime','vote_count','vote_average','release_year']].describe()
 
 
-# ### 3.2 Find the length of 0, and mark them to NAN.
+# ### 4.2 Find the length of 0, and mark them to NAN.
 
 # In[11]:
 
@@ -132,7 +152,7 @@ data.runtime[data.runtime == 0] = np.nan
 data.runtime.describe()
 
 
-# ## 4. Exploring movie release_year
+# ## 5. Exploring movie release_year
 # ### There are many movies release in recent year,and it can be investigate vote_average.
 
 # In[13]:
@@ -143,7 +163,7 @@ plt.xlabel("Release_year")
 remove_border()
 
 
-# ## 4.1 Exploring movie vote average
+# ## 5.1 Exploring movie vote average
 
 # In[14]:
 
@@ -153,7 +173,7 @@ plt.xlabel("Vote_average")
 remove_border()
 
 
-# ## 4.2 Exploring movie Runtime distribution
+# ## 5.2 Exploring movie Runtime distribution
 
 # In[15]:
 
@@ -163,7 +183,7 @@ plt.xlabel("Runtime distribution")
 remove_border()
 
 
-# ## 4.3 Vote_average between Release_year relationship
+# ## 5.3 Vote_average between Release_year relationship
 
 # In[16]:
 
@@ -174,7 +194,7 @@ plt.ylabel("Rating")
 remove_border()
 
 
-# ## 4.4 The number of votes between vote rating
+# ## 5.4 The number of votes between vote rating
 
 # In[17]:
 
@@ -186,7 +206,7 @@ plt.xscale('log')
 remove_border()
 
 
-# ## 4.5 Invesigate vote score (the lowest and the highest)
+# ### 5.5 Invesigate vote score (the lowest and the highest)
 
 # In[30]:
 
@@ -200,7 +220,7 @@ data[data.vote_average == data.vote_average.min()][['original_title','release_ye
 data[data.vote_average == data.vote_average.max()][['original_title','release_year','vote_average','genres']]
 
 
-# ## 4.6 Which genres was the most frequently in Data
+# ### 5.6 Which genres was the most frequently in Data
 
 # In[18]:
 
@@ -209,7 +229,7 @@ genre_c = np.sort(data[genres].sum())[::-1]
 pd.DataFrame({'Genre Count':genre_c})
 
 
-# ### 4.7 The average of genres in the movies
+# ### 5.7 The average of genres in the movies
 
 # In[32]:
 
@@ -219,7 +239,7 @@ print(("Average movie has %0.2f genres" % genre_count.mean()))
 genre_count.describe()
 
 
-# ## 5.Explore group feature
+# ## 6.Explore group feature
 
 # In[33]:
 
@@ -273,9 +293,11 @@ for release_year, subset in data.groupby('release_year'):
     print((release_year, subset[subset.vote_average == subset.vote_average.max()].original_title.values))
 
 
-# ## 5. Small group of genres
+# ## 7. Small group of genres
+# 
+# #### Let's look at release years,runtime,and vote average distribution in different genres(red backgroud).all the movies data set to gray backgroud.
 
-# ### 5.1 The popular genres in release years
+# ### 7.1 The popular genres in release years
 
 # In[39]:
 
@@ -296,7 +318,7 @@ for ax, genre in zip(axes.ravel(), genres):
     ax.set_xlabel('Release_year')
 
 
-# ### 5.2 Runtime in different genres
+# ### 7.2 Runtime in different genres
 
 # In[41]:
 
@@ -320,7 +342,7 @@ for ax, genre in zip(axes.ravel(), genres):
     ax.annotate(genre, xy=(230, .02), ha='right', fontsize=12)
 
 
-# ### 5.3 Vote average in different genres
+# ### 7.3 Vote average in different genres
 
 # In[45]:
 
@@ -344,15 +366,12 @@ for ax, genre in zip(axes.ravel(), genres):
     ax.annotate(genre, xy=(0, .2), ha='left', fontsize=12)
 
 
-# ## 6. Summary
-# 1. Western and war genres popularity have normally distribution in release years.
-# 2. Western genre has more popular in 50s.
-# 3. History genre has long term runtime.
-# 4. Animation,TV movie genre have short term runtime.
-# 5. Music and mytery genre runtime have same distribution with average runtime.
-# 6. Documentary and western genre have the highest vote_average than other genres.
-# 7. Horror genre has lower vote_average than other genres.
+# ## 8. Conclusion
+# 
+# #### After explored whole clean data set and compare with different group of data,I found western and war genres have more popularity in release years and there have normal distribution graphs.And from genre groups,western genre has popular in 50s,from this data information that can definited in 50s western genre have more produce and there run time has lower than all movies average running time. From run time group, I also found history genre has long term runtime,that not difficult to explain why history genre has longer that others,because history always has many things to introduce.In otherwise, animation and tv movie have short runtime and music and mytery runtime have same distribution compare with all movies runtime average. from vote average group,I can see documentary and western genres have high vote average and horror genre has low vote average.
+# 
+# #### In conclusion, there have enough movie data to support the data analysis result,and we also can see in different release year of  vote average be partial to kind of genres.However,the data set didn't definit what kind of person to vote average of movies. In otherwise,that maybe different vote average for people which likes female,male,seniors and kids. 
 
-# ## 7. Reference
+# ## 9. Reference
 # * [Data Science](https://www.kesci.com/apps/home/project/59435d2a23168e6e892555e8)
 # * [Data wrangling with Pandas](http://nbviewer.jupyter.org/urls/gist.github.com/fonnesbeck/5850413/raw/3a9406c73365480bc58d5e75bc80f7962243ba17/2.+Data+Wrangling+with+Pandas.ipynb)
