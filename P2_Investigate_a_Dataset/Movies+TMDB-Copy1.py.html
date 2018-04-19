@@ -295,7 +295,6 @@ for release_year, subset in data.groupby('release_year'):
 
 # ## 7. Small group of genres
 # 
-# #### Let's look at release years,runtime,and vote average distribution in different genres(red backgroud).all the movies data set to gray backgroud.
 
 # ### 7.1 The popular genres in release years
 
@@ -317,6 +316,8 @@ for ax, genre in zip(axes.ravel(), genres):
     remove_border(ax, left=False)
     ax.set_xlabel('Release_year')
 
+
+# #### The genres in release year which show groups as top,and red backgroud repesent release year of genres,gray backgroud repesent all the movies release years data.
 
 # ### 7.2 Runtime in different genres
 
@@ -342,6 +343,8 @@ for ax, genre in zip(axes.ravel(), genres):
     ax.annotate(genre, xy=(230, .02), ha='right', fontsize=12)
 
 
+# #### The genres runtime which show groups as top,and red backgroud repesent runtime of genres,gray backgroud repesent all the movies runtime data.
+
 # ### 7.3 Vote average in different genres
 
 # In[45]:
@@ -365,6 +368,8 @@ for ax, genre in zip(axes.ravel(), genres):
     ax.set_ylim(0, .4)
     ax.annotate(genre, xy=(0, .2), ha='left', fontsize=12)
 
+
+# #### The genres of vote average which show groups as top,and red backgroud repesent vote average of genres,gray backgroud repesent all the movies vote average data.
 
 # ## 8. Conclusion
 # 
